@@ -1,24 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Box } from '@chakra-ui/react';
+import { setUser } from './redux/authSlice';
+import { setupAuthListener } from './services/authService';
+import AuthPage from './components/AuthPage';
+import Dashboard from './components/Dashboard';
 
 function App() {
+  const dispatch = useDispatch();
+  const { user } = useSelector(state => state.auth);
+
+  useEffect(() => {
+    const unsubscribe = setupAuthListener((user) => {
+      if (user) {
+        dispatch(setUser({
+          uid: user.uid,
+          email: user.email
+        }));
+      } else {
+        dispatch(setUser(null));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [dispatch]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box minH="100vh" bg="gray.50">
+      {user ? <Dashboard /> : <AuthPage />}
+    </Box>
   );
 }
 
